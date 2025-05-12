@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ");
 
                 $stmt->bind_param(
-                    "ssssisss",
+                    "ssssissss",
                     $trackingCode, $patientName, $patientPhone, $patientEmail,
                     $doctorId, $appointmentDate, $startTime, $endTime,
                     $notes
@@ -190,7 +190,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ");
 
                 $stmt->bind_param(
-                    "sssissssi",
+                    "sssisssssi",
                     $patientName, $patientPhone, $patientEmail,
                     $doctorId, $appointmentDate, $startTime, $endTime,
                     $status, $notes, $id
@@ -314,11 +314,15 @@ if ($conn && $action === 'list') {
 
     // Get total count for pagination
     $stmt = $conn->prepare($countQuery);
-    if (!empty($whereClause)) {
-        // Only bind parameters if we have where clauses
+    if (!empty($whereClause) && !empty($types)) {
+        // Only bind parameters if we have where clauses and types
         $paramTypes = substr($types, 0, strlen($types) - 2); // Remove the "ii" for pagination
         $countParams = array_slice($params, 0, count($params) - 2); // Remove pagination params
-        $stmt->bind_param($paramTypes, ...$countParams);
+
+        // Make sure we have a non-empty type string before binding
+        if (!empty($paramTypes)) {
+            $stmt->bind_param($paramTypes, ...$countParams);
+        }
     }
     $stmt->execute();
     $stmt->bind_result($totalAppointments);

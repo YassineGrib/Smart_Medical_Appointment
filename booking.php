@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_appointment'])) 
             ");
 
             $stmt->bind_param(
-                "ssssissss",
+                "ssssssssss",
                 $trackingCode, $patientName, $patientPhone, $patientEmail,
                 $doctorId, $appointmentDate, $startTime, $endTime,
                 $notes, $documentPath
