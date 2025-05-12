@@ -143,8 +143,9 @@ The Smart Medical Appointment System is designed to streamline the process of sc
 ![Booking Page](https://github.com/user-attachments/assets/d7d8b487-9d93-4820-8e32-2e53acf2c60b)
 
 ### Admin Interface
-![Admin Dashboard](https://github.com/user-attachments/assets/d7d8b487-9d93-4820-8e32-2e53acf2c60b)
-![Appointment Calendar](https://github.com/user-attachments/assets/d7d8b487-9d93-4820-8e32-2e53acf2c60b)
+![image](https://github.com/user-attachments/assets/dfafbb4d-f3d3-4a6a-93c7-a8c986b42710)
+
+![image](https://github.com/user-attachments/assets/38f8be58-ffae-47df-bf8a-e78a22616c24)
 
 ## 🔄 Validation Features
 
