@@ -1,7 +1,7 @@
 <?php
 /**
  * Admin Header
- * 
+ *
  * Contains the header HTML for admin pages
  */
 
@@ -16,28 +16,28 @@ if (!defined('APP_NAME')) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($pageTitle) ? $pageTitle . ' - ' : ''; ?><?php echo APP_NAME; ?> Admin</title>
-    
+
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
-    
+
     <!-- FullCalendar CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.5.1/main.min.css">
-    
+
     <!-- Custom styles -->
     <style>
         body {
             font-size: .875rem;
         }
-        
+
         .feather {
             width: 16px;
             height: 16px;
             vertical-align: text-bottom;
         }
-        
+
         /* Sidebar */
         .sidebar {
             position: fixed;
@@ -48,13 +48,13 @@ if (!defined('APP_NAME')) {
             padding: 48px 0 0;
             box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
         }
-        
+
         @media (max-width: 767.98px) {
             .sidebar {
                 top: 5rem;
             }
         }
-        
+
         .sidebar-sticky {
             position: relative;
             top: 0;
@@ -63,31 +63,31 @@ if (!defined('APP_NAME')) {
             overflow-x: hidden;
             overflow-y: auto;
         }
-        
+
         .sidebar .nav-link {
             font-weight: 500;
             color: #333;
         }
-        
+
         .sidebar .nav-link .feather {
             margin-right: 4px;
             color: #727272;
         }
-        
+
         .sidebar .nav-link.active {
             color: #007bff;
         }
-        
+
         .sidebar .nav-link:hover .feather,
         .sidebar .nav-link.active .feather {
             color: inherit;
         }
-        
+
         .sidebar-heading {
             font-size: .75rem;
             text-transform: uppercase;
         }
-        
+
         /* Navbar */
         .navbar-brand {
             padding-top: .75rem;
@@ -96,50 +96,97 @@ if (!defined('APP_NAME')) {
             background-color: rgba(0, 0, 0, .25);
             box-shadow: inset -1px 0 0 rgba(0, 0, 0, .25);
         }
-        
+
         .navbar .navbar-toggler {
             top: .25rem;
             right: 1rem;
         }
-        
+
         .navbar .form-control {
             padding: .75rem 1rem;
             border-width: 0;
             border-radius: 0;
         }
-        
+
         .form-control-dark {
             color: #fff;
             background-color: rgba(255, 255, 255, .1);
             border-color: rgba(255, 255, 255, .1);
         }
-        
+
         .form-control-dark:focus {
             border-color: transparent;
             box-shadow: 0 0 0 3px rgba(255, 255, 255, .25);
         }
-        
+
         /* Cards */
         .border-left-primary {
             border-left: 4px solid #4e73df;
         }
-        
+
         .border-left-success {
             border-left: 4px solid #1cc88a;
         }
-        
+
         .border-left-info {
             border-left: 4px solid #36b9cc;
         }
-        
+
         .border-left-warning {
             border-left: 4px solid #f6c23e;
         }
-        
+
         .border-left-danger {
             border-left: 4px solid #e74a3b;
         }
-        
+
+        /* Statistics Cards */
+        .card {
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .icon-circle {
+            height: 2.5rem;
+            width: 2.5rem;
+            border-radius: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bg-primary {
+            background-color: #4e73df !important;
+        }
+
+        .bg-success {
+            background-color: #1cc88a !important;
+        }
+
+        .bg-info {
+            background-color: #36b9cc !important;
+        }
+
+        .bg-warning {
+            background-color: #f6c23e !important;
+        }
+
+        .bg-danger {
+            background-color: #e74a3b !important;
+        }
+
+        .text-xs {
+            font-size: 0.7rem;
+        }
+
+        .rounded-lg {
+            border-radius: 0.5rem !important;
+        }
+
         /* Calendar */
         #calendar {
             height: 400px;
@@ -163,7 +210,7 @@ if (!defined('APP_NAME')) {
             </li>
         </ul>
     </nav>
-    
+
     <?php
     // Display flash message if any
     $flashMessage = getFlashMessage();
@@ -176,7 +223,7 @@ if (!defined('APP_NAME')) {
         } elseif ($flashMessage['type'] === 'warning') {
             $alertClass = 'alert-warning';
         }
-        
+
         echo '<div class="alert ' . $alertClass . ' alert-dismissible fade show m-3" role="alert">';
         echo $flashMessage['message'];
         echo '<button type="button" class="close" data-dismiss="alert" aria-label="Close">';

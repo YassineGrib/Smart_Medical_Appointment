@@ -1,7 +1,7 @@
 <?php
 /**
  * Booking Page
- * 
+ *
  * Handles the appointment booking process
  */
 
@@ -35,40 +35,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_appointment'])) 
         $appointmentDate = $_POST['appointment_date'];
         $startTime = $_POST['start_time'];
         $notes = sanitizeInput($_POST['notes']);
-        
+
         // Calculate end time (30 minutes after start time)
         $endTime = date('H:i:s', strtotime($startTime . ' + ' . APPOINTMENT_DURATION . ' minutes'));
-        
+
         // Validate form data
         if (empty($patientName)) {
             $errors[] = 'Patient name is required';
         }
-        
+
         if (empty($patientPhone) || !isValidPhone($patientPhone)) {
             $errors[] = 'Valid phone number is required';
         }
-        
+
         if (empty($patientEmail) || !isValidEmail($patientEmail)) {
             $errors[] = 'Valid email address is required';
         }
-        
+
         if ($doctorId <= 0) {
             $errors[] = 'Doctor selection is required';
         }
-        
+
         if (empty($appointmentDate) || strtotime($appointmentDate) < strtotime(date('Y-m-d'))) {
             $errors[] = 'Valid appointment date is required';
         }
-        
+
         if (empty($startTime)) {
             $errors[] = 'Appointment time is required';
         }
-        
+
         // Check if time slot is available
         if (empty($errors) && !isTimeSlotAvailable($doctorId, $appointmentDate, $startTime, $endTime)) {
             $errors[] = 'Selected time slot is no longer available. Please choose another time.';
         }
-        
+
         // Handle file upload if provided
         $documentPath = '';
         if (isset($_FILES['document']) && $_FILES['document']['error'] === UPLOAD_ERR_OK) {
@@ -76,22 +76,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_appointment'])) 
             $fileSize = $_FILES['document']['size'];
             $fileName = $_FILES['document']['name'];
             $fileTmpName = $_FILES['document']['tmp_name'];
-            
+
             // Validate file type and size
             if (!in_array($fileType, ALLOWED_FILE_TYPES)) {
                 $errors[] = 'Invalid file type. Allowed types: PDF, JPEG, PNG';
             }
-            
+
             if ($fileSize > MAX_FILE_SIZE) {
                 $errors[] = 'File size exceeds the maximum limit of ' . (MAX_FILE_SIZE / 1024 / 1024) . 'MB';
             }
-            
+
             if (empty($errors)) {
                 // Generate unique filename
                 $fileExtension = pathinfo($fileName, PATHINFO_EXTENSION);
                 $newFileName = uniqid('doc_') . '.' . $fileExtension;
                 $uploadPath = UPLOAD_DIR . $newFileName;
-                
+
                 // Move uploaded file
                 if (move_uploaded_file($fileTmpName, $uploadPath)) {
                     $documentPath = $newFileName;
@@ -100,32 +100,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_appointment'])) 
                 }
             }
         }
-        
+
         // Save appointment if no errors
         if (empty($errors)) {
             // Generate tracking code
             $trackingCode = generateTrackingCode();
-            
+
             // Insert appointment into database
             $stmt = $conn->prepare("
                 INSERT INTO appointments (
-                    tracking_code, patient_name, patient_phone, patient_email, 
-                    doctor_id, appointment_date, start_time, end_time, 
+                    tracking_code, patient_name, patient_phone, patient_email,
+                    doctor_id, appointment_date, start_time, end_time,
                     status, notes, documents
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)
             ");
-            
+
             $stmt->bind_param(
-                "ssssissss", 
-                $trackingCode, $patientName, $patientPhone, $patientEmail, 
-                $doctorId, $appointmentDate, $startTime, $endTime, 
+                "ssssissss",
+                $trackingCode, $patientName, $patientPhone, $patientEmail,
+                $doctorId, $appointmentDate, $startTime, $endTime,
                 $notes, $documentPath
             );
-            
+
             if ($stmt->execute()) {
                 $appointmentId = $stmt->insert_id;
                 $stmt->close();
-                
+
                 // Redirect to confirmation page
                 redirect("confirmation.php?id=$appointmentId&code=$trackingCode");
             } else {
@@ -142,11 +142,11 @@ if ($conn) {
     $stmt = $conn->prepare("SELECT id, name FROM specialties ORDER BY name");
     $stmt->execute();
     $result = $stmt->get_result();
-    
+
     while ($row = $result->fetch_assoc()) {
         $specialties[] = $row;
     }
-    
+
     $stmt->close();
 }
 
@@ -157,11 +157,11 @@ if ($conn && $specialtyId > 0) {
     $stmt->bind_param("i", $specialtyId);
     $stmt->execute();
     $result = $stmt->get_result();
-    
+
     while ($row = $result->fetch_assoc()) {
         $doctors[] = $row;
     }
-    
+
     $stmt->close();
 }
 
@@ -175,24 +175,24 @@ if ($conn && $doctorId > 0 && !empty($date)) {
     $stmt->bind_result($scheduleJson);
     $stmt->fetch();
     $stmt->close();
-    
+
     $schedule = json_decode($scheduleJson, true);
     $dayOfWeek = date('N', strtotime($date)); // 1 (Monday) to 7 (Sunday)
-    
+
     // Check if doctor works on this day
     if (isset($schedule[$dayOfWeek])) {
         $daySchedule = $schedule[$dayOfWeek];
         $startHour = isset($daySchedule['start']) ? $daySchedule['start'] : CLINIC_START_TIME;
         $endHour = isset($daySchedule['end']) ? $daySchedule['end'] : CLINIC_END_TIME;
-        
+
         // Generate time slots
         $currentTime = strtotime($startHour);
         $endTime = strtotime($endHour);
-        
+
         while ($currentTime < $endTime) {
             $slotStart = date('H:i:s', $currentTime);
             $slotEnd = date('H:i:s', $currentTime + (APPOINTMENT_DURATION * 60));
-            
+
             // Check if slot is available
             if (isTimeSlotAvailable($doctorId, $date, $slotStart, $slotEnd)) {
                 $timeSlots[] = [
@@ -201,7 +201,7 @@ if ($conn && $doctorId > 0 && !empty($date)) {
                     'display' => date('g:i A', $currentTime)
                 ];
             }
-            
+
             // Move to next slot
             $currentTime += (APPOINTMENT_DURATION * 60);
         }
@@ -217,15 +217,15 @@ if ($conn && $doctorId > 0) {
         JOIN specialties s ON d.specialty_id = s.id
         WHERE d.id = ?
     ");
-    
+
     $stmt->bind_param("i", $doctorId);
     $stmt->execute();
     $result = $stmt->get_result();
-    
+
     if ($row = $result->fetch_assoc()) {
         $doctorDetails = $row;
     }
-    
+
     $stmt->close();
 }
 
@@ -237,21 +237,85 @@ if ($conn && $doctorId > 0) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book Appointment - <?php echo APP_NAME; ?></title>
-    
+
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
-    
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
     <!-- Custom styles -->
     <style>
+        :root {
+            --primary-color: #1a73e8;
+            --secondary-color: #34a853;
+            --accent-color: #4285f4;
+            --dark-color: #202124;
+            --light-color: #f8f9fa;
+        }
+
         body {
             background-color: #f8f9fa;
             padding-top: 20px;
             padding-bottom: 20px;
+            font-family: 'Roboto', sans-serif;
         }
-        
+
+        /* Navbar styles */
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 0.8rem 1rem;
+            margin-bottom: 20px;
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            font-size: 1.3rem;
+        }
+
+        .nav-item {
+            margin: 0 0.25rem;
+        }
+
+        .nav-link {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link i {
+            margin-right: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .admin-link {
+            background-color: var(--secondary-color);
+            color: white !important;
+            border-radius: 50px;
+            padding: 0.5rem 1.2rem;
+            margin-left: 0.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .admin-link:hover {
+            background-color: #2d9249;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
         .booking-container {
             background-color: white;
             border-radius: 5px;
@@ -259,14 +323,14 @@ if ($conn && $doctorId > 0) {
             padding: 2rem;
             margin-bottom: 2rem;
         }
-        
+
         .booking-steps {
             display: flex;
             justify-content: space-between;
             margin-bottom: 2rem;
             position: relative;
         }
-        
+
         .booking-steps::before {
             content: '';
             position: absolute;
@@ -277,7 +341,7 @@ if ($conn && $doctorId > 0) {
             background-color: #e9ecef;
             z-index: 1;
         }
-        
+
         .step {
             width: 30px;
             height: 30px;
@@ -290,17 +354,17 @@ if ($conn && $doctorId > 0) {
             position: relative;
             z-index: 2;
         }
-        
+
         .step.active {
             background-color: #007bff;
             color: white;
         }
-        
+
         .step.completed {
             background-color: #28a745;
             color: white;
         }
-        
+
         .step-label {
             position: absolute;
             top: 35px;
@@ -309,7 +373,7 @@ if ($conn && $doctorId > 0) {
             white-space: nowrap;
             font-size: 0.8rem;
         }
-        
+
         .time-slot {
             display: inline-block;
             margin: 5px;
@@ -319,17 +383,17 @@ if ($conn && $doctorId > 0) {
             cursor: pointer;
             transition: all 0.2s ease;
         }
-        
+
         .time-slot:hover {
             background-color: #f8f9fa;
         }
-        
+
         .time-slot.selected {
             background-color: #007bff;
             color: white;
             border-color: #007bff;
         }
-        
+
         .doctor-card {
             border: 1px solid #ced4da;
             border-radius: 4px;
@@ -338,11 +402,11 @@ if ($conn && $doctorId > 0) {
             cursor: pointer;
             transition: all 0.2s ease;
         }
-        
+
         .doctor-card:hover {
             background-color: #f8f9fa;
         }
-        
+
         .doctor-card.selected {
             border-color: #007bff;
             background-color: #f8f9fa;
@@ -363,26 +427,34 @@ if ($conn && $doctorId > 0) {
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ml-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="index.php">Home</a>
+                        <a class="nav-link" href="index.php">
+                            <i class="fas fa-home"></i> Home
+                        </a>
                     </li>
                     <li class="nav-item active">
-                        <a class="nav-link" href="booking.php">Book Appointment</a>
+                        <a class="nav-link" href="booking.php">
+                            <i class="fas fa-calendar-plus"></i> Book Appointment
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="tracking.php">Track Appointment</a>
+                        <a class="nav-link" href="tracking.php">
+                            <i class="fas fa-search"></i> Track Appointment
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="admin/index.php">Admin Login</a>
+                        <a class="nav-link admin-link" href="admin/index.php">
+                            <i class="fas fa-user-shield"></i> Admin Login
+                        </a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
-    
+
     <div class="container">
         <div class="booking-container">
             <h2 class="text-center mb-4">Book Your Appointment</h2>
-            
+
             <!-- Booking Steps -->
             <div class="booking-steps">
                 <div class="step <?php echo $step >= 1 ? 'active' : ''; ?> <?php echo $step > 1 ? 'completed' : ''; ?>">
@@ -402,7 +474,7 @@ if ($conn && $doctorId > 0) {
                     <span class="step-label">Patient Details</span>
                 </div>
             </div>
-            
+
             <?php if (!empty($errors)): ?>
                 <div class="alert alert-danger">
                     <ul class="mb-0">
@@ -412,12 +484,12 @@ if ($conn && $doctorId > 0) {
                     </ul>
                 </div>
             <?php endif; ?>
-            
+
             <!-- Step 1: Select Specialty -->
             <?php if ($step === 1): ?>
                 <form action="booking.php" method="get">
                     <input type="hidden" name="step" value="2">
-                    
+
                     <div class="form-group">
                         <label for="specialty">Select Medical Specialty</label>
                         <select class="form-control" id="specialty" name="specialty" required>
@@ -429,13 +501,13 @@ if ($conn && $doctorId > 0) {
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
                         <button type="submit" class="btn btn-primary">Next: Choose Doctor</button>
                         <a href="index.php" class="btn btn-link">Cancel</a>
                     </div>
                 </form>
-            
+
             <!-- Step 2: Choose Doctor -->
             <?php elseif ($step === 2): ?>
                 <?php if (empty($doctors)): ?>
@@ -447,7 +519,7 @@ if ($conn && $doctorId > 0) {
                     <form action="booking.php" method="get">
                         <input type="hidden" name="step" value="3">
                         <input type="hidden" name="specialty" value="<?php echo $specialtyId; ?>">
-                        
+
                         <div class="form-group">
                             <label>Select a Doctor</label>
                             <?php foreach ($doctors as $doctor): ?>
@@ -465,26 +537,26 @@ if ($conn && $doctorId > 0) {
                             <?php endforeach; ?>
                             <input type="hidden" id="doctor" name="doctor" value="<?php echo $doctorId; ?>" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <button type="submit" class="btn btn-primary" id="next-btn" disabled>Next: Select Date & Time</button>
                             <a href="booking.php?step=1&specialty=<?php echo $specialtyId; ?>" class="btn btn-link">Back</a>
                         </div>
                     </form>
                 <?php endif; ?>
-            
+
             <!-- Step 3: Select Date & Time -->
             <?php elseif ($step === 3): ?>
                 <form action="booking.php" method="get">
                     <input type="hidden" name="step" value="4">
                     <input type="hidden" name="specialty" value="<?php echo $specialtyId; ?>">
                     <input type="hidden" name="doctor" value="<?php echo $doctorId; ?>">
-                    
+
                     <div class="form-group">
                         <label for="date">Select Date</label>
                         <input type="date" class="form-control" id="date" name="date" min="<?php echo date('Y-m-d'); ?>" value="<?php echo $date; ?>" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label>Select Time</label>
                         <div class="time-slots">
@@ -494,7 +566,7 @@ if ($conn && $doctorId > 0) {
                                 </div>
                             <?php else: ?>
                                 <?php foreach ($timeSlots as $slot): ?>
-                                    <div class="time-slot <?php echo $timeSlot === $slot['start'] ? 'selected' : ''; ?>" 
+                                    <div class="time-slot <?php echo $timeSlot === $slot['start'] ? 'selected' : ''; ?>"
                                          onclick="selectTimeSlot('<?php echo $slot['start']; ?>')">
                                         <?php echo $slot['display']; ?>
                                     </div>
@@ -503,7 +575,7 @@ if ($conn && $doctorId > 0) {
                             <?php endif; ?>
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
                         <button type="submit" class="btn btn-primary" id="time-next-btn" <?php echo empty($timeSlots) ? 'disabled' : ''; ?>>
                             Next: Patient Details
@@ -511,7 +583,7 @@ if ($conn && $doctorId > 0) {
                         <a href="booking.php?step=2&specialty=<?php echo $specialtyId; ?>&doctor=<?php echo $doctorId; ?>" class="btn btn-link">Back</a>
                     </div>
                 </form>
-            
+
             <!-- Step 4: Patient Details -->
             <?php elseif ($step === 4): ?>
                 <div class="row mb-4">
@@ -533,13 +605,13 @@ if ($conn && $doctorId > 0) {
                         </div>
                     </div>
                 </div>
-                
+
                 <form action="booking.php" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
                     <input type="hidden" name="doctor_id" value="<?php echo $doctorId; ?>">
                     <input type="hidden" name="appointment_date" value="<?php echo $date; ?>">
                     <input type="hidden" name="start_time" value="<?php echo $timeSlot; ?>">
-                    
+
                     <div class="form-row">
                         <div class="form-group col-md-6">
                             <label for="patient_name">Full Name</label>
@@ -550,17 +622,17 @@ if ($conn && $doctorId > 0) {
                             <input type="tel" class="form-control" id="patient_phone" name="patient_phone" required>
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="patient_email">Email Address</label>
                         <input type="email" class="form-control" id="patient_email" name="patient_email" required>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="notes">Notes (Optional)</label>
                         <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="document">Upload Document (Optional)</label>
                         <input type="file" class="form-control-file" id="document" name="document">
@@ -568,7 +640,7 @@ if ($conn && $doctorId > 0) {
                             Allowed file types: PDF, JPEG, PNG. Maximum size: <?php echo MAX_FILE_SIZE / 1024 / 1024; ?>MB
                         </small>
                     </div>
-                    
+
                     <div class="form-group">
                         <button type="submit" name="book_appointment" class="btn btn-success">Book Appointment</button>
                         <a href="booking.php?step=3&specialty=<?php echo $specialtyId; ?>&doctor=<?php echo $doctorId; ?>&date=<?php echo $date; ?>" class="btn btn-link">Back</a>
@@ -577,7 +649,7 @@ if ($conn && $doctorId > 0) {
             <?php endif; ?>
         </div>
     </div>
-    
+
     <!-- Footer -->
     <footer class="bg-dark text-white py-4">
         <div class="container">
@@ -586,39 +658,39 @@ if ($conn && $doctorId > 0) {
             </div>
         </div>
     </footer>
-    
+
     <!-- jQuery and Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    
+
     <script>
         // Doctor selection
         function selectDoctor(doctorId) {
             document.getElementById('doctor').value = doctorId;
             document.getElementById('next-btn').disabled = false;
-            
+
             // Update UI
             document.querySelectorAll('.doctor-card').forEach(function(card) {
                 card.classList.remove('selected');
             });
-            
+
             event.currentTarget.classList.add('selected');
         }
-        
+
         // Time slot selection
         function selectTimeSlot(time) {
             document.getElementById('time').value = time;
             document.getElementById('time-next-btn').disabled = false;
-            
+
             // Update UI
             document.querySelectorAll('.time-slot').forEach(function(slot) {
                 slot.classList.remove('selected');
             });
-            
+
             event.currentTarget.classList.add('selected');
         }
-        
+
         // Date change handler
         document.addEventListener('DOMContentLoaded', function() {
             var dateInput = document.getElementById('date');

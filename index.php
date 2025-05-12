@@ -61,6 +61,57 @@ if ($conn) {
             color: #333;
         }
 
+        /* Navbar styles */
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 0.8rem 1rem;
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            font-size: 1.3rem;
+        }
+
+        .nav-item {
+            margin: 0 0.25rem;
+        }
+
+        .nav-link {
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link i {
+            margin-right: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .admin-link {
+            background-color: var(--secondary-color);
+            color: white !important;
+            border-radius: 50px;
+            padding: 0.5rem 1.2rem;
+            margin-left: 0.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .admin-link:hover {
+            background-color: #2d9249;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
         /* Hero section */
         .hero {
             position: relative;
@@ -383,16 +434,24 @@ if ($conn) {
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ml-auto">
                     <li class="nav-item active">
-                        <a class="nav-link" href="index.php">Home</a>
+                        <a class="nav-link" href="index.php">
+                            <i class="fas fa-home"></i> Home
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="booking.php">Book Appointment</a>
+                        <a class="nav-link" href="booking.php">
+                            <i class="fas fa-calendar-plus"></i> Book Appointment
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="tracking.php">Track Appointment</a>
+                        <a class="nav-link" href="tracking.php">
+                            <i class="fas fa-search"></i> Track Appointment
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="admin/index.php">Admin Login</a>
+                        <a class="nav-link admin-link" href="admin/index.php">
+                            <i class="fas fa-user-shield"></i> Admin Login
+                        </a>
                     </li>
                 </ul>
             </div>

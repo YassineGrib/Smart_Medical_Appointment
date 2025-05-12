@@ -1,7 +1,7 @@
 <?php
 /**
  * Admin Dashboard
- * 
+ *
  * Main admin interface with statistics and quick access to features
  */
 
@@ -34,35 +34,35 @@ if ($conn) {
     $stmt->bind_result($stats['total']);
     $stmt->fetch();
     $stmt->close();
-    
+
     // Pending appointments
     $stmt = $conn->prepare("SELECT COUNT(*) FROM appointments WHERE status = 'pending'");
     $stmt->execute();
     $stmt->bind_result($stats['pending']);
     $stmt->fetch();
     $stmt->close();
-    
+
     // Confirmed appointments
     $stmt = $conn->prepare("SELECT COUNT(*) FROM appointments WHERE status = 'confirmed'");
     $stmt->execute();
     $stmt->bind_result($stats['confirmed']);
     $stmt->fetch();
     $stmt->close();
-    
+
     // Cancelled appointments
     $stmt = $conn->prepare("SELECT COUNT(*) FROM appointments WHERE status = 'cancelled'");
     $stmt->execute();
     $stmt->bind_result($stats['cancelled']);
     $stmt->fetch();
     $stmt->close();
-    
+
     // Completed appointments
     $stmt = $conn->prepare("SELECT COUNT(*) FROM appointments WHERE status = 'completed'");
     $stmt->execute();
     $stmt->bind_result($stats['completed']);
     $stmt->fetch();
     $stmt->close();
-    
+
     // Today's appointments
     $today = date('Y-m-d');
     $stmt = $conn->prepare("SELECT COUNT(*) FROM appointments WHERE appointment_date = ?");
@@ -83,14 +83,14 @@ if ($conn) {
         ORDER BY a.created_at DESC
         LIMIT 5
     ");
-    
+
     $stmt->execute();
     $result = $stmt->get_result();
-    
+
     while ($row = $result->fetch_assoc()) {
         $recentAppointments[] = $row;
     }
-    
+
     $stmt->close();
 }
 
@@ -103,7 +103,7 @@ include 'includes/header.php';
     <div class="row">
         <!-- Sidebar -->
         <?php include 'includes/sidebar.php'; ?>
-        
+
         <!-- Main content -->
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4 py-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
@@ -122,112 +122,143 @@ include 'includes/header.php';
                     </a>
                 </div>
             </div>
-            
+
             <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5 class="text-dark font-weight-bold mb-3">
+                        <i class="fas fa-chart-bar mr-2"></i>Appointment Statistics
+                    </h5>
+                </div>
+            </div>
             <div class="row">
                 <div class="col-xl-2 col-md-4 mb-4">
-                    <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card shadow h-100 rounded-lg border-0">
                         <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                        Total Appointments</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['total']; ?></div>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase">
+                                    Total Appointments
                                 </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                                <div class="icon-circle bg-primary">
+                                    <i class="fas fa-calendar-alt text-white"></i>
                                 </div>
+                            </div>
+                            <div class="h3 mb-0 font-weight-bold text-gray-800"><?php echo $stats['total']; ?></div>
+                            <div class="mt-2 text-muted small">
+                                <a href="appointments.php" class="text-primary">
+                                    <i class="fas fa-arrow-right mr-1"></i>View All
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="col-xl-2 col-md-4 mb-4">
-                    <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card shadow h-100 rounded-lg border-0">
                         <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                        Pending</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['pending']; ?></div>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase">
+                                    Pending
                                 </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-clock fa-2x text-gray-300"></i>
+                                <div class="icon-circle bg-warning">
+                                    <i class="fas fa-clock text-white"></i>
                                 </div>
+                            </div>
+                            <div class="h3 mb-0 font-weight-bold text-gray-800"><?php echo $stats['pending']; ?></div>
+                            <div class="mt-2 text-muted small">
+                                <a href="appointments.php?status=pending" class="text-warning">
+                                    <i class="fas fa-arrow-right mr-1"></i>View Pending
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="col-xl-2 col-md-4 mb-4">
-                    <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card shadow h-100 rounded-lg border-0">
                         <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                        Confirmed</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['confirmed']; ?></div>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase">
+                                    Confirmed
                                 </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                                <div class="icon-circle bg-info">
+                                    <i class="fas fa-check-circle text-white"></i>
                                 </div>
+                            </div>
+                            <div class="h3 mb-0 font-weight-bold text-gray-800"><?php echo $stats['confirmed']; ?></div>
+                            <div class="mt-2 text-muted small">
+                                <a href="appointments.php?status=confirmed" class="text-info">
+                                    <i class="fas fa-arrow-right mr-1"></i>View Confirmed
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="col-xl-2 col-md-4 mb-4">
-                    <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card shadow h-100 rounded-lg border-0">
                         <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                        Completed</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['completed']; ?></div>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase">
+                                    Completed
                                 </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-check-double fa-2x text-gray-300"></i>
+                                <div class="icon-circle bg-success">
+                                    <i class="fas fa-check-double text-white"></i>
                                 </div>
+                            </div>
+                            <div class="h3 mb-0 font-weight-bold text-gray-800"><?php echo $stats['completed']; ?></div>
+                            <div class="mt-2 text-muted small">
+                                <a href="appointments.php?status=completed" class="text-success">
+                                    <i class="fas fa-arrow-right mr-1"></i>View Completed
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="col-xl-2 col-md-4 mb-4">
-                    <div class="card border-left-danger shadow h-100 py-2">
+                    <div class="card shadow h-100 rounded-lg border-0">
                         <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
-                                        Cancelled</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['cancelled']; ?></div>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="text-xs font-weight-bold text-danger text-uppercase">
+                                    Cancelled
                                 </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-times-circle fa-2x text-gray-300"></i>
+                                <div class="icon-circle bg-danger">
+                                    <i class="fas fa-times-circle text-white"></i>
                                 </div>
+                            </div>
+                            <div class="h3 mb-0 font-weight-bold text-gray-800"><?php echo $stats['cancelled']; ?></div>
+                            <div class="mt-2 text-muted small">
+                                <a href="appointments.php?status=cancelled" class="text-danger">
+                                    <i class="fas fa-arrow-right mr-1"></i>View Cancelled
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="col-xl-2 col-md-4 mb-4">
-                    <div class="card border-left-primary shadow h-100 py-2">
+                    <div class="card shadow h-100 rounded-lg border-0">
                         <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                        Today's Appointments</div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $stats['today']; ?></div>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="text-xs font-weight-bold text-primary text-uppercase">
+                                    Today
                                 </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-calendar-day fa-2x text-gray-300"></i>
+                                <div class="icon-circle bg-primary">
+                                    <i class="fas fa-calendar-day text-white"></i>
                                 </div>
+                            </div>
+                            <div class="h3 mb-0 font-weight-bold text-gray-800"><?php echo $stats['today']; ?></div>
+                            <div class="mt-2 text-muted small">
+                                <a href="appointments.php?date=<?php echo date('Y-m-d'); ?>" class="text-primary">
+                                    <i class="fas fa-arrow-right mr-1"></i>View Today
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <!-- Recent Appointments -->
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
@@ -295,7 +326,7 @@ include 'includes/header.php';
                     <?php endif; ?>
                 </div>
             </div>
-            
+
             <!-- Calendar Preview -->
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
