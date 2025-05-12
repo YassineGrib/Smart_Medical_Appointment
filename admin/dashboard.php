@@ -329,11 +329,118 @@ include 'includes/header.php';
 
             <!-- Calendar Preview -->
             <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Appointment Calendar</h6>
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-calendar-alt mr-2"></i>Appointment Calendar</h6>
+                    <div class="dropdown no-arrow">
+                        <button class="btn btn-sm btn-primary dropdown-toggle" type="button" id="calendarFilterDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-filter mr-1"></i> Filter
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="calendarFilterDropdown">
+                            <h6 class="dropdown-header">Filter By:</h6>
+                            <div class="dropdown-divider"></div>
+                            <div class="px-3 py-2">
+                                <div class="form-group">
+                                    <label for="doctor-filter"><i class="fas fa-user-md mr-1"></i> Doctor:</label>
+                                    <select class="form-control form-control-sm" id="doctor-filter">
+                                        <option value="0">All Doctors</option>
+                                        <?php
+                                        // Get doctors for filter
+                                        if ($conn) {
+                                            $stmt = $conn->prepare("SELECT id, name FROM doctors ORDER BY name");
+                                            $stmt->execute();
+                                            $result = $stmt->get_result();
+
+                                            while ($row = $result->fetch_assoc()) {
+                                                echo '<option value="' . $row['id'] . '">' . $row['name'] . '</option>';
+                                            }
+
+                                            $stmt->close();
+                                        }
+                                        ?>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="specialty-filter"><i class="fas fa-stethoscope mr-1"></i> Specialty:</label>
+                                    <select class="form-control form-control-sm" id="specialty-filter">
+                                        <option value="0">All Specialties</option>
+                                        <?php
+                                        // Get specialties for filter
+                                        if ($conn) {
+                                            $stmt = $conn->prepare("SELECT id, name FROM specialties ORDER BY name");
+                                            $stmt->execute();
+                                            $result = $stmt->get_result();
+
+                                            while ($row = $result->fetch_assoc()) {
+                                                echo '<option value="' . $row['id'] . '">' . $row['name'] . '</option>';
+                                            }
+
+                                            $stmt->close();
+                                        }
+                                        ?>
+                                    </select>
+                                </div>
+                                <div class="form-group mb-0">
+                                    <button id="apply-calendar-filter" class="btn btn-primary btn-sm btn-block">
+                                        <i class="fas fa-check mr-1"></i> Apply Filter
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex flex-wrap">
+                            <div class="mr-3 mb-2">
+                                <span class="badge badge-pill badge-warning">&nbsp;&nbsp;&nbsp;</span> Pending
+                            </div>
+                            <div class="mr-3 mb-2">
+                                <span class="badge badge-pill badge-info">&nbsp;&nbsp;&nbsp;</span> Confirmed
+                            </div>
+                            <div class="mr-3 mb-2">
+                                <span class="badge badge-pill badge-success">&nbsp;&nbsp;&nbsp;</span> Completed
+                            </div>
+                            <div class="mr-3 mb-2">
+                                <span class="badge badge-pill badge-danger">&nbsp;&nbsp;&nbsp;</span> Cancelled
+                            </div>
+                        </div>
+                    </div>
                     <div id="calendar"></div>
+
+                    <!-- Appointment Details Modal -->
+                    <div class="modal fade" id="appointmentModal" tabindex="-1" role="dialog" aria-labelledby="appointmentModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="appointmentModalLabel">Appointment Details</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="appointment-details">
+                                        <p><strong><i class="fas fa-user mr-2"></i>Patient:</strong> <span id="modal-patient"></span></p>
+                                        <p><strong><i class="fas fa-user-md mr-2"></i>Doctor:</strong> <span id="modal-doctor"></span></p>
+                                        <p><strong><i class="fas fa-stethoscope mr-2"></i>Specialty:</strong> <span id="modal-specialty"></span></p>
+                                        <p><strong><i class="fas fa-calendar-day mr-2"></i>Date:</strong> <span id="modal-date"></span></p>
+                                        <p><strong><i class="fas fa-clock mr-2"></i>Time:</strong> <span id="modal-time"></span></p>
+                                        <p><strong><i class="fas fa-tag mr-2"></i>Status:</strong> <span id="modal-status"></span></p>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <a href="#" class="btn btn-primary" id="modal-view-link">
+                                        <i class="fas fa-eye mr-1"></i> View Details
+                                    </a>
+                                    <a href="#" class="btn btn-success" id="modal-edit-link">
+                                        <i class="fas fa-edit mr-1"></i> Edit
+                                    </a>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                        <i class="fas fa-times mr-1"></i> Close
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>

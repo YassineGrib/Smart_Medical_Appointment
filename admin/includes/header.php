@@ -189,7 +189,79 @@ if (!defined('APP_NAME')) {
 
         /* Calendar */
         #calendar {
-            height: 400px;
+            min-height: 600px;
+        }
+
+        .fc-event {
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 0.85em;
+            padding: 2px 4px;
+        }
+
+        .fc-daygrid-event {
+            white-space: normal !important;
+            align-items: normal !important;
+        }
+
+        .fc-daygrid-day-events {
+            margin-bottom: 0 !important;
+        }
+
+        .fc-list-event-title {
+            font-weight: 500;
+        }
+
+        .fc-list-event-time {
+            width: 120px;
+        }
+
+        .calendar-tooltip {
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .calendar-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        /* Responsive calendar */
+        @media (max-width: 767.98px) {
+            #calendar {
+                min-height: 500px;
+            }
+
+            .fc-header-toolbar {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .fc-toolbar-chunk {
+                display: flex;
+                justify-content: center;
+                width: 100%;
+            }
+
+            .fc-daygrid-event {
+                font-size: 0.8em;
+            }
+        }
+
+        /* Appointment modal */
+        .appointment-details p {
+            margin-bottom: 0.75rem;
+        }
+
+        .appointment-details i {
+            color: #4e73df;
         }
     </style>
 </head>
