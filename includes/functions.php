@@ -80,16 +80,41 @@ function formatTime($time) {
  * @param string $startTime Start time in H:i format
  * @param string $endTime End time in H:i format
  * @param int|null $excludeAppointmentId Optional appointment ID to exclude from check (for updates)
- * @return bool True if available, false otherwise
+ * @return array Result with status and message
  */
 function isTimeSlotAvailable($doctorId, $date, $startTime, $endTime, $excludeAppointmentId = null) {
     global $conn;
 
     $conn = getDbConnection();
     if (!$conn) {
-        return false;
+        return [
+            'available' => false,
+            'message' => 'Database connection failed'
+        ];
     }
 
+    // Get appointment duration from settings
+    $appointmentDuration = getAppointmentDuration();
+
+    // Check if the doctor works on this day
+    $isDoctorWorkingDay = isDoctorWorkingDay($doctorId, $date);
+    if (!$isDoctorWorkingDay['working']) {
+        return [
+            'available' => false,
+            'message' => $isDoctorWorkingDay['message']
+        ];
+    }
+
+    // Check if the time is within doctor's working hours
+    $isWithinWorkingHours = isWithinDoctorWorkingHours($doctorId, $date, $startTime, $endTime);
+    if (!$isWithinWorkingHours['within_hours']) {
+        return [
+            'available' => false,
+            'message' => $isWithinWorkingHours['message']
+        ];
+    }
+
+    // Check for conflicts with existing appointments
     $query = "
         SELECT COUNT(*) FROM appointments
         WHERE doctor_id = ?
@@ -117,7 +142,247 @@ function isTimeSlotAvailable($doctorId, $date, $startTime, $endTime, $excludeApp
     $stmt->fetch();
     $stmt->close();
 
-    return $count === 0;
+    if ($count > 0) {
+        return [
+            'available' => false,
+            'message' => 'This time slot is already booked. Please select another time.'
+        ];
+    }
+
+    return [
+        'available' => true,
+        'message' => 'Time slot is available'
+    ];
+}
+
+/**
+ * Check if a doctor works on a specific day
+ *
+ * @param int $doctorId Doctor ID
+ * @param string $date Date in Y-m-d format
+ * @return array Result with working status and message
+ */
+function isDoctorWorkingDay($doctorId, $date) {
+    global $conn;
+
+    $conn = getDbConnection();
+    if (!$conn) {
+        return [
+            'working' => false,
+            'message' => 'Database connection failed'
+        ];
+    }
+
+    // Get doctor's schedule
+    $stmt = $conn->prepare("SELECT name, schedule FROM doctors WHERE id = ?");
+    $stmt->bind_param("i", $doctorId);
+    $stmt->execute();
+    $stmt->bind_result($doctorName, $scheduleJson);
+    $stmt->fetch();
+    $stmt->close();
+
+    if (!$scheduleJson) {
+        return [
+            'working' => false,
+            'message' => 'Doctor schedule not found'
+        ];
+    }
+
+    $schedule = json_decode($scheduleJson, true);
+    $dayOfWeek = date('N', strtotime($date)); // 1 (Monday) to 7 (Sunday)
+
+    if (!isset($schedule[$dayOfWeek])) {
+        $dayName = date('l', strtotime($date));
+        return [
+            'working' => false,
+            'message' => "Dr. $doctorName does not work on $dayName. Please select another date."
+        ];
+    }
+
+    return [
+        'working' => true,
+        'message' => 'Doctor works on this day'
+    ];
+}
+
+/**
+ * Check if a time slot is within doctor's working hours
+ *
+ * @param int $doctorId Doctor ID
+ * @param string $date Date in Y-m-d format
+ * @param string $startTime Start time in H:i format
+ * @param string $endTime End time in H:i format
+ * @return array Result with status and message
+ */
+function isWithinDoctorWorkingHours($doctorId, $date, $startTime, $endTime) {
+    global $conn;
+
+    $conn = getDbConnection();
+    if (!$conn) {
+        return [
+            'within_hours' => false,
+            'message' => 'Database connection failed'
+        ];
+    }
+
+    // Get doctor's schedule
+    $stmt = $conn->prepare("SELECT name, schedule FROM doctors WHERE id = ?");
+    $stmt->bind_param("i", $doctorId);
+    $stmt->execute();
+    $stmt->bind_result($doctorName, $scheduleJson);
+    $stmt->fetch();
+    $stmt->close();
+
+    if (!$scheduleJson) {
+        return [
+            'within_hours' => false,
+            'message' => 'Doctor schedule not found'
+        ];
+    }
+
+    $schedule = json_decode($scheduleJson, true);
+    $dayOfWeek = date('N', strtotime($date)); // 1 (Monday) to 7 (Sunday)
+
+    if (!isset($schedule[$dayOfWeek])) {
+        $dayName = date('l', strtotime($date));
+        return [
+            'within_hours' => false,
+            'message' => "Dr. $doctorName does not work on $dayName. Please select another date."
+        ];
+    }
+
+    $daySchedule = $schedule[$dayOfWeek];
+    $doctorStartTime = $daySchedule['start'];
+    $doctorEndTime = $daySchedule['end'];
+
+    // Convert to timestamps for comparison
+    $appointmentStart = strtotime($startTime);
+    $appointmentEnd = strtotime($endTime);
+    $doctorStart = strtotime($doctorStartTime);
+    $doctorEnd = strtotime($doctorEndTime);
+
+    if ($appointmentStart < $doctorStart) {
+        return [
+            'within_hours' => false,
+            'message' => "The selected time is before Dr. $doctorName's working hours, which start at " .
+                        date('g:i A', $doctorStart) . " on this day."
+        ];
+    }
+
+    if ($appointmentEnd > $doctorEnd) {
+        return [
+            'within_hours' => false,
+            'message' => "The selected time extends beyond Dr. $doctorName's working hours, which end at " .
+                        date('g:i A', $doctorEnd) . " on this day."
+        ];
+    }
+
+    return [
+        'within_hours' => true,
+        'message' => 'Time is within doctor working hours'
+    ];
+}
+
+/**
+ * Get appointment duration from settings
+ *
+ * @return int Appointment duration in minutes
+ */
+function getAppointmentDuration() {
+    global $conn;
+
+    $conn = getDbConnection();
+    if (!$conn) {
+        return APPOINTMENT_DURATION; // Return default from config
+    }
+
+    $stmt = $conn->prepare("SELECT setting_value FROM settings WHERE setting_key = 'appointment_duration'");
+    $stmt->execute();
+    $stmt->bind_result($duration);
+    $found = $stmt->fetch();
+    $stmt->close();
+
+    if ($found && $duration) {
+        return (int)$duration;
+    }
+
+    return APPOINTMENT_DURATION; // Return default from config
+}
+
+/**
+ * Get available time slots for a doctor on a specific date
+ *
+ * @param int $doctorId Doctor ID
+ * @param string $date Date in Y-m-d format
+ * @return array Available time slots with error message if applicable
+ */
+function getAvailableTimeSlots($doctorId, $date) {
+    global $conn;
+
+    $result = [
+        'slots' => [],
+        'error' => null
+    ];
+
+    $conn = getDbConnection();
+    if (!$conn) {
+        $result['error'] = 'Database connection failed';
+        return $result;
+    }
+
+    // Check if doctor works on this day
+    $isDoctorWorkingDay = isDoctorWorkingDay($doctorId, $date);
+    if (!$isDoctorWorkingDay['working']) {
+        $result['error'] = $isDoctorWorkingDay['message'];
+        return $result;
+    }
+
+    // Get doctor's schedule
+    $stmt = $conn->prepare("SELECT schedule FROM doctors WHERE id = ?");
+    $stmt->bind_param("i", $doctorId);
+    $stmt->execute();
+    $stmt->bind_result($scheduleJson);
+    $stmt->fetch();
+    $stmt->close();
+
+    $schedule = json_decode($scheduleJson, true);
+    $dayOfWeek = date('N', strtotime($date)); // 1 (Monday) to 7 (Sunday)
+    $daySchedule = $schedule[$dayOfWeek];
+
+    // Get appointment duration from settings
+    $appointmentDuration = getAppointmentDuration();
+
+    // Generate time slots
+    $startHour = isset($daySchedule['start']) ? $daySchedule['start'] : CLINIC_START_TIME;
+    $endHour = isset($daySchedule['end']) ? $daySchedule['end'] : CLINIC_END_TIME;
+
+    $currentTime = strtotime($startHour);
+    $endTime = strtotime($endHour);
+
+    while ($currentTime < $endTime) {
+        $slotStart = date('H:i:s', $currentTime);
+        $slotEnd = date('H:i:s', $currentTime + ($appointmentDuration * 60));
+
+        // Check if slot is available
+        $availability = isTimeSlotAvailable($doctorId, $date, $slotStart, $slotEnd);
+
+        if ($availability['available']) {
+            $result['slots'][] = [
+                'start' => $slotStart,
+                'end' => $slotEnd,
+                'display' => date('g:i A', $currentTime)
+            ];
+        }
+
+        // Move to next slot
+        $currentTime += ($appointmentDuration * 60);
+    }
+
+    if (empty($result['slots']) && !$result['error']) {
+        $result['error'] = 'No available time slots for the selected date. Please choose another date.';
+    }
+
+    return $result;
 }
 
 /**

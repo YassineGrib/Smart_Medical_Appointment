@@ -71,8 +71,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // Check if time slot is available
-            if (empty($errors) && !isTimeSlotAvailable($doctorId, $appointmentDate, $startTime, $endTime)) {
-                $errors[] = 'Selected time slot is not available. Please choose another time.';
+            if (empty($errors)) {
+                $availability = isTimeSlotAvailable($doctorId, $appointmentDate, $startTime, $endTime);
+                if (!$availability['available']) {
+                    $errors[] = $availability['message'];
+                }
             }
 
             // Save appointment if no errors
@@ -168,8 +171,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                $currentAppointment['appointment_date'] != $appointmentDate ||
                                $currentAppointment['start_time'] != $startTime;
 
-                if ($timeChanged && !isTimeSlotAvailable($doctorId, $appointmentDate, $startTime, $endTime, $id)) {
-                    $errors[] = 'Selected time slot is not available. Please choose another time.';
+                if ($timeChanged) {
+                    $availability = isTimeSlotAvailable($doctorId, $appointmentDate, $startTime, $endTime, $id);
+                    if (!$availability['available']) {
+                        $errors[] = $availability['message'];
+                    }
                 }
             }
 
@@ -638,6 +644,20 @@ include 'includes/header.php';
                                 <div class="form-group col-md-3">
                                     <label for="start_time"><i class="fas fa-clock mr-1"></i> Appointment Time</label>
                                     <input type="time" class="form-control" id="start_time" name="start_time" value="<?php echo $action === 'edit' ? substr($appointment['start_time'], 0, 5) : ''; ?>" required>
+                                    <button type="button" class="btn btn-sm btn-info mt-2" id="show-time-slots">
+                                        <i class="fas fa-calendar-day mr-1"></i> Show Available Slots
+                                    </button>
+                                    <div id="time-slots-container" class="mt-2" style="display: none;">
+                                        <div class="card">
+                                            <div class="card-body p-2">
+                                                <div id="time-slots-loading">
+                                                    <i class="fas fa-spinner fa-spin mr-1"></i> Loading available time slots...
+                                                </div>
+                                                <div id="time-slots-error" class="text-danger" style="display: none;"></div>
+                                                <div id="time-slots" class="d-flex flex-wrap"></div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -808,6 +828,131 @@ include 'includes/header.php';
         </main>
     </div>
 </div>
+
+<?php if ($action === 'new' || $action === 'edit'): ?>
+<script>
+// Time slot selection functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const doctorSelect = document.getElementById('doctor_id');
+    const dateInput = document.getElementById('appointment_date');
+    const timeInput = document.getElementById('start_time');
+    const showTimeSlotsBtn = document.getElementById('show-time-slots');
+    const timeSlotsContainer = document.getElementById('time-slots-container');
+    const timeSlotsLoading = document.getElementById('time-slots-loading');
+    const timeSlotsError = document.getElementById('time-slots-error');
+    const timeSlots = document.getElementById('time-slots');
+
+    // Add CSS for time slots
+    const style = document.createElement('style');
+    style.textContent = `
+        .time-slot {
+            display: inline-block;
+            margin: 5px;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+        .time-slot:hover {
+            background-color: #f8f9fa;
+        }
+        .time-slot.selected {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Show time slots button click handler
+    showTimeSlotsBtn.addEventListener('click', function() {
+        const doctorId = doctorSelect.value;
+        const date = dateInput.value;
+
+        if (!doctorId || !date) {
+            alert('Please select both a doctor and a date first.');
+            return;
+        }
+
+        // Show container and loading indicator
+        timeSlotsContainer.style.display = 'block';
+        timeSlotsLoading.style.display = 'block';
+        timeSlotsError.style.display = 'none';
+        timeSlots.innerHTML = '';
+
+        // Get appointment ID if editing
+        const appointmentId = <?php echo $action === 'edit' ? $id : 0; ?>;
+
+        // Fetch available time slots
+        fetch(`api/get_time_slots.php?doctor_id=${doctorId}&date=${date}&appointment_id=${appointmentId}`)
+            .then(response => response.json())
+            .then(data => {
+                timeSlotsLoading.style.display = 'none';
+
+                if (!data.success) {
+                    timeSlotsError.textContent = data.message;
+                    timeSlotsError.style.display = 'block';
+                    return;
+                }
+
+                if (data.slots.length === 0) {
+                    timeSlotsError.textContent = 'No available time slots for the selected date.';
+                    timeSlotsError.style.display = 'block';
+                    return;
+                }
+
+                // Display time slots
+                data.slots.forEach(slot => {
+                    const slotElement = document.createElement('div');
+                    slotElement.className = 'time-slot';
+                    slotElement.textContent = slot.display;
+                    slotElement.dataset.time = slot.start;
+
+                    // Check if this slot is currently selected
+                    if (timeInput.value === slot.start.substring(0, 5)) {
+                        slotElement.classList.add('selected');
+                    }
+
+                    // Add click handler
+                    slotElement.addEventListener('click', function() {
+                        // Update time input
+                        timeInput.value = slot.start.substring(0, 5);
+
+                        // Update selected class
+                        document.querySelectorAll('.time-slot').forEach(el => {
+                            el.classList.remove('selected');
+                        });
+                        slotElement.classList.add('selected');
+                    });
+
+                    timeSlots.appendChild(slotElement);
+                });
+            })
+            .catch(error => {
+                timeSlotsLoading.style.display = 'none';
+                timeSlotsError.textContent = 'Error loading time slots. Please try again.';
+                timeSlotsError.style.display = 'block';
+                console.error('Error:', error);
+            });
+    });
+
+    // Update time slots when doctor or date changes
+    doctorSelect.addEventListener('change', function() {
+        if (timeSlotsContainer.style.display === 'block') {
+            showTimeSlotsBtn.click();
+        }
+    });
+
+    dateInput.addEventListener('change', function() {
+        if (timeSlotsContainer.style.display === 'block') {
+            showTimeSlotsBtn.click();
+        }
+    });
+});
+</script>
+<?php endif; ?>
 
 <?php
 // Include footer

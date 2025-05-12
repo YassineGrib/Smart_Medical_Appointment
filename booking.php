@@ -65,8 +65,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_appointment'])) 
         }
 
         // Check if time slot is available
-        if (empty($errors) && !isTimeSlotAvailable($doctorId, $appointmentDate, $startTime, $endTime)) {
-            $errors[] = 'Selected time slot is no longer available. Please choose another time.';
+        if (empty($errors)) {
+            $availability = isTimeSlotAvailable($doctorId, $appointmentDate, $startTime, $endTime);
+            if (!$availability['available']) {
+                $errors[] = $availability['message'];
+            }
         }
 
         // Handle file upload if provided
@@ -167,45 +170,12 @@ if ($conn && $specialtyId > 0) {
 
 // Get available time slots for selected doctor and date
 $timeSlots = [];
-if ($conn && $doctorId > 0 && !empty($date)) {
-    // Get doctor's schedule
-    $stmt = $conn->prepare("SELECT schedule FROM doctors WHERE id = ?");
-    $stmt->bind_param("i", $doctorId);
-    $stmt->execute();
-    $stmt->bind_result($scheduleJson);
-    $stmt->fetch();
-    $stmt->close();
-
-    $schedule = json_decode($scheduleJson, true);
-    $dayOfWeek = date('N', strtotime($date)); // 1 (Monday) to 7 (Sunday)
-
-    // Check if doctor works on this day
-    if (isset($schedule[$dayOfWeek])) {
-        $daySchedule = $schedule[$dayOfWeek];
-        $startHour = isset($daySchedule['start']) ? $daySchedule['start'] : CLINIC_START_TIME;
-        $endHour = isset($daySchedule['end']) ? $daySchedule['end'] : CLINIC_END_TIME;
-
-        // Generate time slots
-        $currentTime = strtotime($startHour);
-        $endTime = strtotime($endHour);
-
-        while ($currentTime < $endTime) {
-            $slotStart = date('H:i:s', $currentTime);
-            $slotEnd = date('H:i:s', $currentTime + (APPOINTMENT_DURATION * 60));
-
-            // Check if slot is available
-            if (isTimeSlotAvailable($doctorId, $date, $slotStart, $slotEnd)) {
-                $timeSlots[] = [
-                    'start' => $slotStart,
-                    'end' => $slotEnd,
-                    'display' => date('g:i A', $currentTime)
-                ];
-            }
-
-            // Move to next slot
-            $currentTime += (APPOINTMENT_DURATION * 60);
-        }
-    }
+$timeSlotError = null;
+if ($doctorId > 0 && !empty($date)) {
+    // Use the new function to get available time slots
+    $availableSlots = getAvailableTimeSlots($doctorId, $date);
+    $timeSlots = $availableSlots['slots'];
+    $timeSlotError = $availableSlots['error'];
 }
 
 // Get doctor details if selected
@@ -562,7 +532,7 @@ if ($conn && $doctorId > 0) {
                         <div class="time-slots">
                             <?php if (empty($timeSlots)): ?>
                                 <div class="alert alert-info">
-                                    No available time slots for the selected date. Please choose another date.
+                                    <?php echo $timeSlotError ?: 'No available time slots for the selected date. Please choose another date.'; ?>
                                 </div>
                             <?php else: ?>
                                 <?php foreach ($timeSlots as $slot): ?>
