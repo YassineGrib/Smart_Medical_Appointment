@@ -27,3 +27,13 @@ Stack trace:
 #0 C:\xampp\htdocs\Smart_Medical_Appointment\setup.php(365): checkDatabaseConnection()
 #1 {main}
   thrown in C:\xampp\htdocs\Smart_Medical_Appointment\setup.php on line 34
+[12-May-2025 01:45:22 UTC] PHP Fatal error:  Uncaught ValueError: mysqli_stmt::bind_param(): Argument #1 ($types) cannot be empty in C:\xampp\htdocs\Smart_Medical_Appointment\admin\appointments.php:318
+Stack trace:
+#0 C:\xampp\htdocs\Smart_Medical_Appointment\admin\appointments.php(318): mysqli_stmt->bind_param('', 0, 10)
+#1 {main}
+  thrown in C:\xampp\htdocs\Smart_Medical_Appointment\admin\appointments.php on line 318
+[12-May-2025 01:45:47 UTC] PHP Fatal error:  Uncaught ValueError: mysqli_stmt::bind_param(): Argument #1 ($types) cannot be empty in C:\xampp\htdocs\Smart_Medical_Appointment\admin\appointments.php:318
+Stack trace:
+#0 C:\xampp\htdocs\Smart_Medical_Appointment\admin\appointments.php(318): mysqli_stmt->bind_param('', 0, 10)
+#1 {main}
+  thrown in C:\xampp\htdocs\Smart_Medical_Appointment\admin\appointments.php on line 318
