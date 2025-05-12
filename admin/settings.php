@@ -1,7 +1,7 @@
 <?php
 /**
  * Admin Settings
- * 
+ *
  * Manages system settings
  */
 
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
         $clinicEndTime = $_POST['clinic_end_time'];
         $emailNotifications = isset($_POST['email_notifications']) ? 'true' : 'false';
         $smsNotifications = isset($_POST['sms_notifications']) ? 'true' : 'false';
-        
+
         // Get clinic days
         $clinicDays = [];
         for ($day = 1; $day <= 7; $day++) {
@@ -46,28 +46,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
             }
         }
         $clinicDaysJson = json_encode($clinicDays);
-        
+
         // Validate form data
         if (empty($clinicName)) {
             $errors[] = 'Clinic name is required';
         }
-        
+
         if (empty($clinicEmail) || !isValidEmail($clinicEmail)) {
             $errors[] = 'Valid clinic email is required';
         }
-        
+
         if ($appointmentDuration < 10 || $appointmentDuration > 120) {
             $errors[] = 'Appointment duration must be between 10 and 120 minutes';
         }
-        
+
         if (strtotime($clinicEndTime) <= strtotime($clinicStartTime)) {
             $errors[] = 'Clinic end time must be after start time';
         }
-        
+
         if (empty($clinicDays)) {
             $errors[] = 'At least one clinic day must be selected';
         }
-        
+
         // Save settings if no errors
         if (empty($errors)) {
             // Settings to update
@@ -83,23 +83,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_settings'])) {
                 ['email_notifications', $emailNotifications],
                 ['sms_notifications', $smsNotifications]
             ];
-            
+
             $successCount = 0;
             $errorMessages = [];
-            
+
             foreach ($settings as $setting) {
                 $stmt = $conn->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)");
                 $stmt->bind_param("ss", $setting[0], $setting[1]);
-                
+
                 if ($stmt->execute()) {
                     $successCount++;
                 } else {
                     $errorMessages[] = "Error updating setting {$setting[0]}: " . $stmt->error;
                 }
-                
+
                 $stmt->close();
             }
-            
+
             if (empty($errorMessages)) {
                 $success = 'Settings updated successfully';
             } else {
@@ -115,11 +115,11 @@ if ($conn) {
     $stmt = $conn->prepare("SELECT setting_key, setting_value FROM settings");
     $stmt->execute();
     $result = $stmt->get_result();
-    
+
     while ($row = $result->fetch_assoc()) {
         $settings[$row['setting_key']] = $row['setting_value'];
     }
-    
+
     $stmt->close();
 }
 
@@ -158,13 +158,13 @@ include 'includes/header.php';
     <div class="row">
         <!-- Sidebar -->
         <?php include 'includes/sidebar.php'; ?>
-        
+
         <!-- Main content -->
         <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4 py-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2">System Settings</h1>
             </div>
-            
+
             <?php if (!empty($success)): ?>
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
                     <?php echo $success; ?>
@@ -173,7 +173,7 @@ include 'includes/header.php';
                     </button>
                 </div>
             <?php endif; ?>
-            
+
             <?php if (!empty($errors)): ?>
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     <ul class="mb-0">
@@ -186,57 +186,57 @@ include 'includes/header.php';
                     </button>
                 </div>
             <?php endif; ?>
-            
+
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Clinic Settings</h6>
+                    <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-hospital mr-2"></i>Clinic Settings</h6>
                 </div>
                 <div class="card-body">
                     <form method="post" action="settings.php">
                         <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
-                        
+
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label for="clinic_name">Clinic Name</label>
+                                <label for="clinic_name"><i class="fas fa-hospital-symbol mr-1"></i> Clinic Name</label>
                                 <input type="text" class="form-control" id="clinic_name" name="clinic_name" value="<?php echo $settings['clinic_name']; ?>" required>
                             </div>
                             <div class="form-group col-md-6">
-                                <label for="clinic_email">Clinic Email</label>
+                                <label for="clinic_email"><i class="fas fa-envelope mr-1"></i> Clinic Email</label>
                                 <input type="email" class="form-control" id="clinic_email" name="clinic_email" value="<?php echo $settings['clinic_email']; ?>" required>
                             </div>
                         </div>
-                        
+
                         <div class="form-row">
                             <div class="form-group col-md-6">
-                                <label for="clinic_phone">Clinic Phone</label>
+                                <label for="clinic_phone"><i class="fas fa-phone mr-1"></i> Clinic Phone</label>
                                 <input type="text" class="form-control" id="clinic_phone" name="clinic_phone" value="<?php echo $settings['clinic_phone']; ?>">
                             </div>
                             <div class="form-group col-md-6">
-                                <label for="clinic_address">Clinic Address</label>
+                                <label for="clinic_address"><i class="fas fa-map-marker-alt mr-1"></i> Clinic Address</label>
                                 <input type="text" class="form-control" id="clinic_address" name="clinic_address" value="<?php echo $settings['clinic_address']; ?>">
                             </div>
                         </div>
-                        
+
                         <hr>
-                        <h5>Appointment Settings</h5>
-                        
+                        <h5><i class="fas fa-calendar-check mr-2"></i>Appointment Settings</h5>
+
                         <div class="form-row">
                             <div class="form-group col-md-4">
-                                <label for="appointment_duration">Appointment Duration (minutes)</label>
+                                <label for="appointment_duration"><i class="fas fa-hourglass-half mr-1"></i> Appointment Duration (minutes)</label>
                                 <input type="number" class="form-control" id="appointment_duration" name="appointment_duration" min="10" max="120" value="<?php echo $settings['appointment_duration']; ?>" required>
                             </div>
                             <div class="form-group col-md-4">
-                                <label for="clinic_start_time">Clinic Start Time</label>
+                                <label for="clinic_start_time"><i class="fas fa-clock mr-1"></i> Clinic Start Time</label>
                                 <input type="time" class="form-control" id="clinic_start_time" name="clinic_start_time" value="<?php echo $settings['clinic_start_time']; ?>" required>
                             </div>
                             <div class="form-group col-md-4">
-                                <label for="clinic_end_time">Clinic End Time</label>
+                                <label for="clinic_end_time"><i class="fas fa-clock mr-1"></i> Clinic End Time</label>
                                 <input type="time" class="form-control" id="clinic_end_time" name="clinic_end_time" value="<?php echo $settings['clinic_end_time']; ?>" required>
                             </div>
                         </div>
-                        
+
                         <div class="form-group">
-                            <label>Clinic Days</label>
+                            <label><i class="fas fa-calendar-week mr-1"></i> Clinic Days</label>
                             <div class="row">
                                 <?php
                                 $days = [
@@ -248,7 +248,7 @@ include 'includes/header.php';
                                     6 => 'Saturday',
                                     7 => 'Sunday'
                                 ];
-                                
+
                                 foreach ($days as $dayNum => $dayName):
                                     $isActive = in_array($dayNum, $clinicDays);
                                 ?>
@@ -261,10 +261,10 @@ include 'includes/header.php';
                                 <?php endforeach; ?>
                             </div>
                         </div>
-                        
+
                         <hr>
-                        <h5>Notification Settings</h5>
-                        
+                        <h5><i class="fas fa-bell mr-2"></i>Notification Settings</h5>
+
                         <div class="form-row">
                             <div class="form-group col-md-6">
                                 <div class="custom-control custom-switch">
@@ -281,9 +281,9 @@ include 'includes/header.php';
                                 <small class="form-text text-muted">Send SMS notifications for appointment confirmations and reminders.</small>
                             </div>
                         </div>
-                        
+
                         <div class="form-group mt-4">
-                            <button type="submit" name="save_settings" class="btn btn-primary">Save Settings</button>
+                            <button type="submit" name="save_settings" class="btn btn-primary"><i class="fas fa-save mr-1"></i> Save Settings</button>
                         </div>
                     </form>
                 </div>

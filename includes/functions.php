@@ -1,13 +1,13 @@
 <?php
 /**
  * Helper Functions
- * 
+ *
  * Contains utility functions used throughout the application
  */
 
 /**
  * Sanitize user input
- * 
+ *
  * @param string $data Data to sanitize
  * @return string Sanitized data
  */
@@ -20,7 +20,7 @@ function sanitizeInput($data) {
 
 /**
  * Validate email address
- * 
+ *
  * @param string $email Email to validate
  * @return bool True if valid, false otherwise
  */
@@ -30,7 +30,7 @@ function isValidEmail($email) {
 
 /**
  * Validate phone number
- * 
+ *
  * @param string $phone Phone number to validate
  * @return bool True if valid, false otherwise
  */
@@ -41,20 +41,20 @@ function isValidPhone($phone) {
 
 /**
  * Generate a unique tracking code for appointments
- * 
+ *
  * @return string Tracking code in format CLINIC-YYYY-XXXX
  */
 function generateTrackingCode() {
     $prefix = TRACKING_CODE_PREFIX;
     $year = date('Y');
     $random = strtoupper(substr(md5(uniqid(mt_rand(), true)), 0, 4));
-    
+
     return $prefix . '-' . $year . '-' . $random;
 }
 
 /**
  * Format date for display
- * 
+ *
  * @param string $date Date in Y-m-d format
  * @return string Formatted date
  */
@@ -64,7 +64,7 @@ function formatDate($date) {
 
 /**
  * Format time for display
- * 
+ *
  * @param string $time Time in H:i:s format
  * @return string Formatted time
  */
@@ -74,45 +74,55 @@ function formatTime($time) {
 
 /**
  * Check if a time slot is available for a doctor
- * 
+ *
  * @param int $doctorId Doctor ID
  * @param string $date Date in Y-m-d format
  * @param string $startTime Start time in H:i format
  * @param string $endTime End time in H:i format
+ * @param int|null $excludeAppointmentId Optional appointment ID to exclude from check (for updates)
  * @return bool True if available, false otherwise
  */
-function isTimeSlotAvailable($doctorId, $date, $startTime, $endTime) {
+function isTimeSlotAvailable($doctorId, $date, $startTime, $endTime, $excludeAppointmentId = null) {
     global $conn;
-    
+
     $conn = getDbConnection();
     if (!$conn) {
         return false;
     }
-    
-    $stmt = $conn->prepare("
-        SELECT COUNT(*) FROM appointments 
-        WHERE doctor_id = ? 
-        AND appointment_date = ? 
+
+    $query = "
+        SELECT COUNT(*) FROM appointments
+        WHERE doctor_id = ?
+        AND appointment_date = ?
         AND status != 'cancelled'
         AND (
             (start_time <= ? AND end_time > ?) OR
             (start_time < ? AND end_time >= ?) OR
             (start_time >= ? AND end_time <= ?)
         )
-    ");
-    
-    $stmt->bind_param("isssssss", $doctorId, $date, $endTime, $startTime, $endTime, $startTime, $startTime, $endTime);
+    ";
+
+    // If we're updating an existing appointment, exclude it from the check
+    if ($excludeAppointmentId) {
+        $query .= " AND id != ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("isssssssi", $doctorId, $date, $endTime, $startTime, $endTime, $startTime, $startTime, $endTime, $excludeAppointmentId);
+    } else {
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("isssssss", $doctorId, $date, $endTime, $startTime, $endTime, $startTime, $startTime, $endTime);
+    }
+
     $stmt->execute();
     $stmt->bind_result($count);
     $stmt->fetch();
     $stmt->close();
-    
+
     return $count === 0;
 }
 
 /**
  * Generate CSRF token
- * 
+ *
  * @return string CSRF token
  */
 function generateCsrfToken() {
@@ -124,7 +134,7 @@ function generateCsrfToken() {
 
 /**
  * Verify CSRF token
- * 
+ *
  * @param string $token Token to verify
  * @return bool True if valid, false otherwise
  */
@@ -137,7 +147,7 @@ function verifyCsrfToken($token) {
 
 /**
  * Redirect to a URL
- * 
+ *
  * @param string $url URL to redirect to
  */
 function redirect($url) {
@@ -147,7 +157,7 @@ function redirect($url) {
 
 /**
  * Display flash message
- * 
+ *
  * @param string $type Message type (success, error, warning, info)
  * @param string $message Message content
  */
@@ -160,7 +170,7 @@ function setFlashMessage($type, $message) {
 
 /**
  * Get flash message and clear it
- * 
+ *
  * @return array|null Flash message or null if none
  */
 function getFlashMessage() {

@@ -1,7 +1,7 @@
 <?php
 /**
  * Admin Sidebar
- * 
+ *
  * Contains the sidebar navigation for admin pages
  */
 
@@ -19,30 +19,30 @@ $currentPage = basename($_SERVER['PHP_SELF']);
         <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="nav-link <?php echo $currentPage === 'dashboard.php' ? 'active' : ''; ?>" href="dashboard.php">
-                    <i class="fas fa-tachometer-alt"></i>
+                    <i class="fas fa-tachometer-alt mr-2"></i>
                     Dashboard
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link <?php echo $currentPage === 'appointments.php' ? 'active' : ''; ?>" href="appointments.php">
-                    <i class="fas fa-calendar-alt"></i>
+                    <i class="fas fa-calendar-alt mr-2"></i>
                     Appointments
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link <?php echo $currentPage === 'doctors.php' ? 'active' : ''; ?>" href="doctors.php">
-                    <i class="fas fa-user-md"></i>
+                    <i class="fas fa-user-md mr-2"></i>
                     Doctors
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link <?php echo $currentPage === 'specialties.php' ? 'active' : ''; ?>" href="specialties.php">
-                    <i class="fas fa-stethoscope"></i>
+                    <i class="fas fa-stethoscope mr-2"></i>
                     Specialties
                 </a>
             </li>
         </ul>
-        
+
         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
             <span>Administration</span>
         </h6>
@@ -50,20 +50,20 @@ $currentPage = basename($_SERVER['PHP_SELF']);
             <?php if (hasRole('admin')): ?>
             <li class="nav-item">
                 <a class="nav-link <?php echo $currentPage === 'users.php' ? 'active' : ''; ?>" href="users.php">
-                    <i class="fas fa-users"></i>
+                    <i class="fas fa-users mr-2"></i>
                     Users
                 </a>
             </li>
             <?php endif; ?>
             <li class="nav-item">
                 <a class="nav-link <?php echo $currentPage === 'settings.php' ? 'active' : ''; ?>" href="settings.php">
-                    <i class="fas fa-cog"></i>
+                    <i class="fas fa-cog mr-2"></i>
                     Settings
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="logout.php">
-                    <i class="fas fa-sign-out-alt"></i>
+                    <i class="fas fa-sign-out-alt mr-2"></i>
                     Logout
                 </a>
             </li>

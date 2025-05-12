@@ -320,7 +320,7 @@ include 'includes/header.php';
                 <!-- Doctors List -->
                 <div class="card shadow mb-4">
                     <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Doctors List</h6>
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-list mr-2"></i>Doctors List</h6>
                     </div>
                     <div class="card-body">
                         <?php if (empty($doctors)): ?>
@@ -427,7 +427,11 @@ include 'includes/header.php';
                 <div class="card shadow mb-4">
                     <div class="card-header py-3">
                         <h6 class="m-0 font-weight-bold text-primary">
-                            <?php echo $action === 'new' ? 'Add New Doctor' : 'Edit Doctor'; ?>
+                            <?php if ($action === 'new'): ?>
+                                <i class="fas fa-plus-circle mr-2"></i>Add New Doctor
+                            <?php else: ?>
+                                <i class="fas fa-edit mr-2"></i>Edit Doctor
+                            <?php endif; ?>
                         </h6>
                     </div>
                     <div class="card-body">
@@ -439,11 +443,11 @@ include 'includes/header.php';
 
                             <div class="form-row">
                                 <div class="form-group col-md-6">
-                                    <label for="name">Doctor Name</label>
+                                    <label for="name"><i class="fas fa-user-md mr-1"></i> Doctor Name</label>
                                     <input type="text" class="form-control" id="name" name="name" value="<?php echo $action === 'edit' ? $doctor['name'] : ''; ?>" required>
                                 </div>
                                 <div class="form-group col-md-6">
-                                    <label for="specialty_id">Specialty</label>
+                                    <label for="specialty_id"><i class="fas fa-stethoscope mr-1"></i> Specialty</label>
                                     <select class="form-control" id="specialty_id" name="specialty_id" required>
                                         <option value="">Select Specialty</option>
                                         <?php foreach ($specialties as $specialty): ?>
@@ -457,17 +461,17 @@ include 'includes/header.php';
 
                             <div class="form-row">
                                 <div class="form-group col-md-6">
-                                    <label for="phone">Phone Number</label>
+                                    <label for="phone"><i class="fas fa-phone mr-1"></i> Phone Number</label>
                                     <input type="tel" class="form-control" id="phone" name="phone" value="<?php echo $action === 'edit' ? $doctor['phone'] : ''; ?>">
                                 </div>
                                 <div class="form-group col-md-6">
-                                    <label for="email">Email Address</label>
+                                    <label for="email"><i class="fas fa-envelope mr-1"></i> Email Address</label>
                                     <input type="email" class="form-control" id="email" name="email" value="<?php echo $action === 'edit' ? $doctor['email'] : ''; ?>">
                                 </div>
                             </div>
 
                             <div class="form-group">
-                                <label>Working Schedule</label>
+                                <label><i class="fas fa-calendar-week mr-1"></i> Working Schedule</label>
                                 <div class="card">
                                     <div class="card-body">
                                         <div class="row mb-2">
@@ -515,9 +519,13 @@ include 'includes/header.php';
 
                             <div class="form-group">
                                 <button type="submit" name="<?php echo $action === 'new' ? 'create_doctor' : 'update_doctor'; ?>" class="btn btn-primary">
-                                    <?php echo $action === 'new' ? 'Add Doctor' : 'Update Doctor'; ?>
+                                    <?php if ($action === 'new'): ?>
+                                        <i class="fas fa-plus mr-1"></i> Add Doctor
+                                    <?php else: ?>
+                                        <i class="fas fa-save mr-1"></i> Update Doctor
+                                    <?php endif; ?>
                                 </button>
-                                <a href="doctors.php" class="btn btn-secondary">Cancel</a>
+                                <a href="doctors.php" class="btn btn-secondary"><i class="fas fa-times mr-1"></i> Cancel</a>
                             </div>
                         </form>
                     </div>
@@ -528,12 +536,12 @@ include 'includes/header.php';
                 <!-- Doctor Details -->
                 <div class="card shadow mb-4">
                     <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Doctor Details</h6>
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-info-circle mr-2"></i>Doctor Details</h6>
                     </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <h5>Basic Information</h5>
+                                <h5><i class="fas fa-user-md mr-2"></i>Basic Information</h5>
                                 <table class="table table-bordered">
                                     <tr>
                                         <th width="30%">Name</th>
@@ -563,7 +571,7 @@ include 'includes/header.php';
                             </div>
 
                             <div class="col-md-6">
-                                <h5>Working Schedule</h5>
+                                <h5><i class="fas fa-calendar-week mr-2"></i>Working Schedule</h5>
                                 <table class="table table-bordered">
                                     <thead>
                                         <tr>

@@ -305,7 +305,11 @@ include 'includes/header.php';
                 <div class="card shadow mb-4">
                     <div class="card-header py-3">
                         <h6 class="m-0 font-weight-bold text-primary">
-                            <?php echo $action === 'new' ? 'Add New User' : 'Edit User'; ?>
+                            <?php if ($action === 'new'): ?>
+                                <i class="fas fa-plus-circle mr-2"></i>Add New User
+                            <?php else: ?>
+                                <i class="fas fa-edit mr-2"></i>Edit User
+                            <?php endif; ?>
                         </h6>
                     </div>
                     <div class="card-body">
@@ -317,24 +321,24 @@ include 'includes/header.php';
 
                             <?php if ($action === 'new'): ?>
                                 <div class="form-group">
-                                    <label for="username">Username</label>
+                                    <label for="username"><i class="fas fa-user mr-1"></i> Username</label>
                                     <input type="text" class="form-control" id="username" name="username" required>
                                     <small class="form-text text-muted">Username cannot be changed after creation.</small>
                                 </div>
                             <?php else: ?>
                                 <div class="form-group">
-                                    <label>Username</label>
+                                    <label><i class="fas fa-user mr-1"></i> Username</label>
                                     <input type="text" class="form-control" value="<?php echo $user['username']; ?>" readonly>
                                 </div>
                             <?php endif; ?>
 
                             <div class="form-group">
-                                <label for="email">Email Address</label>
+                                <label for="email"><i class="fas fa-envelope mr-1"></i> Email Address</label>
                                 <input type="email" class="form-control" id="email" name="email" value="<?php echo $action === 'edit' ? $user['email'] : ''; ?>" required>
                             </div>
 
                             <div class="form-group">
-                                <label for="role">Role</label>
+                                <label for="role"><i class="fas fa-user-tag mr-1"></i> Role</label>
                                 <select class="form-control" id="role" name="role" required>
                                     <option value="">Select Role</option>
                                     <option value="admin" <?php echo ($action === 'edit' && $user['role'] === 'admin') ? 'selected' : ''; ?>>Admin</option>
@@ -345,7 +349,7 @@ include 'includes/header.php';
                             </div>
 
                             <div class="form-group">
-                                <label for="password"><?php echo $action === 'new' ? 'Password' : 'New Password'; ?></label>
+                                <label for="password"><i class="fas fa-lock mr-1"></i> <?php echo $action === 'new' ? 'Password' : 'New Password'; ?></label>
                                 <input type="password" class="form-control" id="password" name="password" <?php echo $action === 'new' ? 'required' : ''; ?>>
                                 <?php if ($action === 'edit'): ?>
                                     <small class="form-text text-muted">Leave blank to keep current password.</small>
@@ -353,15 +357,19 @@ include 'includes/header.php';
                             </div>
 
                             <div class="form-group">
-                                <label for="confirm_password">Confirm Password</label>
+                                <label for="confirm_password"><i class="fas fa-lock mr-1"></i> Confirm Password</label>
                                 <input type="password" class="form-control" id="confirm_password" name="confirm_password" <?php echo $action === 'new' ? 'required' : ''; ?>>
                             </div>
 
                             <div class="form-group">
                                 <button type="submit" name="<?php echo $action === 'new' ? 'create_user' : 'update_user'; ?>" class="btn btn-primary">
-                                    <?php echo $action === 'new' ? 'Add User' : 'Update User'; ?>
+                                    <?php if ($action === 'new'): ?>
+                                        <i class="fas fa-plus mr-1"></i> Add User
+                                    <?php else: ?>
+                                        <i class="fas fa-save mr-1"></i> Update User
+                                    <?php endif; ?>
                                 </button>
-                                <a href="users.php" class="btn btn-secondary">Cancel</a>
+                                <a href="users.php" class="btn btn-secondary"><i class="fas fa-times mr-1"></i> Cancel</a>
                             </div>
                         </form>
                     </div>
@@ -372,12 +380,12 @@ include 'includes/header.php';
                 <!-- User Details -->
                 <div class="card shadow mb-4">
                     <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">User Details</h6>
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-info-circle mr-2"></i>User Details</h6>
                     </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <h5>User Information</h5>
+                                <h5><i class="fas fa-user mr-2"></i>User Information</h5>
                                 <table class="table table-bordered">
                                     <tr>
                                         <th width="30%">Username</th>

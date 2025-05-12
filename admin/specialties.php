@@ -234,7 +234,7 @@ include 'includes/header.php';
                 <!-- Specialties List -->
                 <div class="card shadow mb-4">
                     <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Specialties List</h6>
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-list mr-2"></i>Specialties List</h6>
                     </div>
                     <div class="card-body">
                         <?php if (empty($specialties)): ?>
@@ -338,7 +338,11 @@ include 'includes/header.php';
                 <div class="card shadow mb-4">
                     <div class="card-header py-3">
                         <h6 class="m-0 font-weight-bold text-primary">
-                            <?php echo $action === 'new' ? 'Add New Specialty' : 'Edit Specialty'; ?>
+                            <?php if ($action === 'new'): ?>
+                                <i class="fas fa-plus-circle mr-2"></i>Add New Specialty
+                            <?php else: ?>
+                                <i class="fas fa-edit mr-2"></i>Edit Specialty
+                            <?php endif; ?>
                         </h6>
                     </div>
                     <div class="card-body">
@@ -349,20 +353,24 @@ include 'includes/header.php';
                             <?php endif; ?>
 
                             <div class="form-group">
-                                <label for="name">Specialty Name</label>
+                                <label for="name"><i class="fas fa-stethoscope mr-1"></i> Specialty Name</label>
                                 <input type="text" class="form-control" id="name" name="name" value="<?php echo $action === 'edit' ? $specialty['name'] : ''; ?>" required>
                             </div>
 
                             <div class="form-group">
-                                <label for="description">Description</label>
+                                <label for="description"><i class="fas fa-align-left mr-1"></i> Description</label>
                                 <textarea class="form-control" id="description" name="description" rows="4"><?php echo $action === 'edit' ? $specialty['description'] : ''; ?></textarea>
                             </div>
 
                             <div class="form-group">
                                 <button type="submit" name="<?php echo $action === 'new' ? 'create_specialty' : 'update_specialty'; ?>" class="btn btn-primary">
-                                    <?php echo $action === 'new' ? 'Add Specialty' : 'Update Specialty'; ?>
+                                    <?php if ($action === 'new'): ?>
+                                        <i class="fas fa-plus mr-1"></i> Add Specialty
+                                    <?php else: ?>
+                                        <i class="fas fa-save mr-1"></i> Update Specialty
+                                    <?php endif; ?>
                                 </button>
-                                <a href="specialties.php" class="btn btn-secondary">Cancel</a>
+                                <a href="specialties.php" class="btn btn-secondary"><i class="fas fa-times mr-1"></i> Cancel</a>
                             </div>
                         </form>
                     </div>
@@ -373,12 +381,12 @@ include 'includes/header.php';
                 <!-- Specialty Details -->
                 <div class="card shadow mb-4">
                     <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Specialty Details</h6>
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-info-circle mr-2"></i>Specialty Details</h6>
                     </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <h5>Basic Information</h5>
+                                <h5><i class="fas fa-stethoscope mr-2"></i>Basic Information</h5>
                                 <table class="table table-bordered">
                                     <tr>
                                         <th width="30%">Name</th>
@@ -400,7 +408,7 @@ include 'includes/header.php';
                             </div>
 
                             <div class="col-md-6">
-                                <h5>Associated Doctors</h5>
+                                <h5><i class="fas fa-user-md mr-2"></i>Associated Doctors</h5>
                                 <?php
                                 // Get doctors with this specialty
                                 $doctors = [];

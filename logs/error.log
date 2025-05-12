@@ -37,3 +37,8 @@ Stack trace:
 #0 C:\xampp\htdocs\Smart_Medical_Appointment\admin\appointments.php(318): mysqli_stmt->bind_param('', 0, 10)
 #1 {main}
   thrown in C:\xampp\htdocs\Smart_Medical_Appointment\admin\appointments.php on line 318
+[12-May-2025 02:03:08 UTC] PHP Fatal error:  Uncaught ArgumentCountError: The number of elements in the type definition string must match the number of bind variables in C:\xampp\htdocs\Smart_Medical_Appointment\booking.php:119
+Stack trace:
+#0 C:\xampp\htdocs\Smart_Medical_Appointment\booking.php(119): mysqli_stmt->bind_param('ssssissss', 'CLINIC-2025-46D...', 'siraj', '0665930055', 'siraj@siraj.com', 1, '2025-05-12', '09:30:00', '10:00:00', '', '')
+#1 {main}
+  thrown in C:\xampp\htdocs\Smart_Medical_Appointment\booking.php on line 119

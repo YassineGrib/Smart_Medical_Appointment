@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ");
 
                 $stmt->bind_param(
-                    "ssssssss",
+                    "ssssisss",
                     $trackingCode, $patientName, $patientPhone, $patientEmail,
                     $doctorId, $appointmentDate, $startTime, $endTime,
                     $notes
@@ -190,7 +190,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ");
 
                 $stmt->bind_param(
-                    "ssssssssi",
+                    "sssissssi",
                     $patientName, $patientPhone, $patientEmail,
                     $doctorId, $appointmentDate, $startTime, $endTime,
                     $status, $notes, $id
@@ -314,8 +314,11 @@ if ($conn && $action === 'list') {
 
     // Get total count for pagination
     $stmt = $conn->prepare($countQuery);
-    if (!empty($params) && !empty($types)) {
-        $stmt->bind_param(substr($types, 0, -2), ...$params);
+    if (!empty($whereClause)) {
+        // Only bind parameters if we have where clauses
+        $paramTypes = substr($types, 0, strlen($types) - 2); // Remove the "ii" for pagination
+        $countParams = array_slice($params, 0, count($params) - 2); // Remove pagination params
+        $stmt->bind_param($paramTypes, ...$countParams);
     }
     $stmt->execute();
     $stmt->bind_result($totalAppointments);
@@ -324,9 +327,8 @@ if ($conn && $action === 'list') {
 
     // Get appointments
     $stmt = $conn->prepare($query);
-    if (!empty($params) && !empty($types)) {
-        $stmt->bind_param($types, ...$params);
-    }
+    // We always have parameters for pagination (LIMIT ?, ?)
+    $stmt->bind_param($types, ...$params);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -409,12 +411,12 @@ include 'includes/header.php';
                 <!-- Filter Form -->
                 <div class="card shadow mb-4">
                     <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Filter Appointments</h6>
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-filter mr-2"></i>Filter Appointments</h6>
                     </div>
                     <div class="card-body">
                         <form method="get" action="appointments.php" class="form-inline">
                             <div class="form-group mr-3 mb-2">
-                                <label for="status" class="mr-2">Status:</label>
+                                <label for="status" class="mr-2"><i class="fas fa-tag mr-1"></i> Status:</label>
                                 <select class="form-control" id="status" name="status">
                                     <option value="">All Statuses</option>
                                     <option value="pending" <?php echo $status === 'pending' ? 'selected' : ''; ?>>Pending</option>
@@ -424,11 +426,11 @@ include 'includes/header.php';
                                 </select>
                             </div>
                             <div class="form-group mr-3 mb-2">
-                                <label for="date" class="mr-2">Date:</label>
+                                <label for="date" class="mr-2"><i class="fas fa-calendar-day mr-1"></i> Date:</label>
                                 <input type="date" class="form-control" id="date" name="date" value="<?php echo $date; ?>">
                             </div>
-                            <button type="submit" class="btn btn-primary mb-2">Apply Filters</button>
-                            <a href="appointments.php" class="btn btn-secondary mb-2 ml-2">Reset</a>
+                            <button type="submit" class="btn btn-primary mb-2"><i class="fas fa-search mr-1"></i> Apply Filters</button>
+                            <a href="appointments.php" class="btn btn-secondary mb-2 ml-2"><i class="fas fa-undo mr-1"></i> Reset</a>
                         </form>
                     </div>
                 </div>
@@ -436,7 +438,7 @@ include 'includes/header.php';
                 <!-- Appointments List -->
                 <div class="card shadow mb-4">
                     <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Appointments List</h6>
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-list mr-2"></i>Appointments List</h6>
                     </div>
                     <div class="card-body">
                         <?php if (empty($appointments)): ?>
@@ -483,7 +485,26 @@ include 'includes/header.php';
                                                             break;
                                                     }
                                                     ?>
-                                                    <span class="badge <?php echo $statusClass; ?>"><?php echo ucfirst($apt['status']); ?></span>
+                                                    <span class="badge <?php echo $statusClass; ?>">
+                                                        <?php
+                                                        $statusIcon = '';
+                                                        switch ($apt['status']) {
+                                                            case 'pending':
+                                                                $statusIcon = '<i class="fas fa-clock mr-1"></i>';
+                                                                break;
+                                                            case 'confirmed':
+                                                                $statusIcon = '<i class="fas fa-check-circle mr-1"></i>';
+                                                                break;
+                                                            case 'completed':
+                                                                $statusIcon = '<i class="fas fa-check-double mr-1"></i>';
+                                                                break;
+                                                            case 'cancelled':
+                                                                $statusIcon = '<i class="fas fa-times-circle mr-1"></i>';
+                                                                break;
+                                                        }
+                                                        echo $statusIcon . ucfirst($apt['status']);
+                                                        ?>
+                                                    </span>
                                                 </td>
                                                 <td>
                                                     <a href="appointments.php?action=view&id=<?php echo $apt['id']; ?>" class="btn btn-sm btn-info">
@@ -515,11 +536,11 @@ include 'includes/header.php';
                                                                     </p>
                                                                 </div>
                                                                 <div class="modal-footer">
-                                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times mr-1"></i> Cancel</button>
                                                                     <form method="post" action="appointments.php">
                                                                         <input type="hidden" name="csrf_token" value="<?php echo generateCsrfToken(); ?>">
                                                                         <input type="hidden" name="appointment_id" value="<?php echo $apt['id']; ?>">
-                                                                        <button type="submit" name="delete_appointment" class="btn btn-danger">Delete</button>
+                                                                        <button type="submit" name="delete_appointment" class="btn btn-danger"><i class="fas fa-trash mr-1"></i> Delete</button>
                                                                     </form>
                                                                 </div>
                                                             </div>
@@ -564,7 +585,11 @@ include 'includes/header.php';
                 <div class="card shadow mb-4">
                     <div class="card-header py-3">
                         <h6 class="m-0 font-weight-bold text-primary">
-                            <?php echo $action === 'new' ? 'Create New Appointment' : 'Edit Appointment'; ?>
+                            <?php if ($action === 'new'): ?>
+                                <i class="fas fa-plus-circle mr-2"></i>Create New Appointment
+                            <?php else: ?>
+                                <i class="fas fa-edit mr-2"></i>Edit Appointment
+                            <?php endif; ?>
                         </h6>
                     </div>
                     <div class="card-body">
@@ -576,23 +601,23 @@ include 'includes/header.php';
 
                             <div class="form-row">
                                 <div class="form-group col-md-6">
-                                    <label for="patient_name">Patient Name</label>
+                                    <label for="patient_name"><i class="fas fa-user mr-1"></i> Patient Name</label>
                                     <input type="text" class="form-control" id="patient_name" name="patient_name" value="<?php echo $action === 'edit' ? $appointment['patient_name'] : ''; ?>" required>
                                 </div>
                                 <div class="form-group col-md-6">
-                                    <label for="patient_phone">Phone Number</label>
+                                    <label for="patient_phone"><i class="fas fa-phone mr-1"></i> Phone Number</label>
                                     <input type="tel" class="form-control" id="patient_phone" name="patient_phone" value="<?php echo $action === 'edit' ? $appointment['patient_phone'] : ''; ?>" required>
                                 </div>
                             </div>
 
                             <div class="form-group">
-                                <label for="patient_email">Email Address</label>
+                                <label for="patient_email"><i class="fas fa-envelope mr-1"></i> Email Address</label>
                                 <input type="email" class="form-control" id="patient_email" name="patient_email" value="<?php echo $action === 'edit' ? $appointment['patient_email'] : ''; ?>" required>
                             </div>
 
                             <div class="form-row">
                                 <div class="form-group col-md-6">
-                                    <label for="doctor_id">Doctor</label>
+                                    <label for="doctor_id"><i class="fas fa-user-md mr-1"></i> Doctor</label>
                                     <select class="form-control" id="doctor_id" name="doctor_id" required>
                                         <option value="">Select Doctor</option>
                                         <?php foreach ($doctors as $doctor): ?>
@@ -603,18 +628,18 @@ include 'includes/header.php';
                                     </select>
                                 </div>
                                 <div class="form-group col-md-3">
-                                    <label for="appointment_date">Appointment Date</label>
+                                    <label for="appointment_date"><i class="fas fa-calendar-alt mr-1"></i> Appointment Date</label>
                                     <input type="date" class="form-control" id="appointment_date" name="appointment_date" value="<?php echo $action === 'edit' ? $appointment['appointment_date'] : ''; ?>" required>
                                 </div>
                                 <div class="form-group col-md-3">
-                                    <label for="start_time">Appointment Time</label>
+                                    <label for="start_time"><i class="fas fa-clock mr-1"></i> Appointment Time</label>
                                     <input type="time" class="form-control" id="start_time" name="start_time" value="<?php echo $action === 'edit' ? substr($appointment['start_time'], 0, 5) : ''; ?>" required>
                                 </div>
                             </div>
 
                             <?php if ($action === 'edit'): ?>
                                 <div class="form-group">
-                                    <label for="status">Status</label>
+                                    <label for="status"><i class="fas fa-tag mr-1"></i> Status</label>
                                     <select class="form-control" id="status" name="status" required>
                                         <option value="pending" <?php echo $appointment['status'] === 'pending' ? 'selected' : ''; ?>>Pending</option>
                                         <option value="confirmed" <?php echo $appointment['status'] === 'confirmed' ? 'selected' : ''; ?>>Confirmed</option>
@@ -625,15 +650,19 @@ include 'includes/header.php';
                             <?php endif; ?>
 
                             <div class="form-group">
-                                <label for="notes">Notes</label>
+                                <label for="notes"><i class="fas fa-sticky-note mr-1"></i> Notes</label>
                                 <textarea class="form-control" id="notes" name="notes" rows="3"><?php echo $action === 'edit' ? $appointment['notes'] : ''; ?></textarea>
                             </div>
 
                             <div class="form-group">
                                 <button type="submit" name="<?php echo $action === 'new' ? 'create_appointment' : 'update_appointment'; ?>" class="btn btn-primary">
-                                    <?php echo $action === 'new' ? 'Create Appointment' : 'Update Appointment'; ?>
+                                    <?php if ($action === 'new'): ?>
+                                        <i class="fas fa-plus mr-1"></i> Create Appointment
+                                    <?php else: ?>
+                                        <i class="fas fa-save mr-1"></i> Update Appointment
+                                    <?php endif; ?>
                                 </button>
-                                <a href="appointments.php" class="btn btn-secondary">Cancel</a>
+                                <a href="appointments.php" class="btn btn-secondary"><i class="fas fa-times mr-1"></i> Cancel</a>
                             </div>
                         </form>
                     </div>
@@ -644,12 +673,12 @@ include 'includes/header.php';
                 <!-- Appointment Details -->
                 <div class="card shadow mb-4">
                     <div class="card-header py-3">
-                        <h6 class="m-0 font-weight-bold text-primary">Appointment Details</h6>
+                        <h6 class="m-0 font-weight-bold text-primary"><i class="fas fa-info-circle mr-2"></i>Appointment Details</h6>
                     </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <h5>Appointment Information</h5>
+                                <h5><i class="fas fa-calendar-check mr-2"></i>Appointment Information</h5>
                                 <table class="table table-bordered">
                                     <tr>
                                         <th width="30%">Tracking Code</th>
@@ -698,7 +727,7 @@ include 'includes/header.php';
                             </div>
 
                             <div class="col-md-6">
-                                <h5>Patient Information</h5>
+                                <h5><i class="fas fa-user mr-2"></i>Patient Information</h5>
                                 <table class="table table-bordered">
                                     <tr>
                                         <th width="30%">Name</th>
