@@ -136,7 +136,7 @@ if ($conn) {
         }
 
         .hero h1 {
-            font-size: 3.5rem;
+            font-size: 3.4rem;
             font-weight: 700;
             margin-bottom: 1.5rem;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -193,7 +193,7 @@ if ($conn) {
         }
 
         .hero-image-container {
-            position: absolute;
+            /* position: absolute; */
             right: -100px;
             bottom: -50px;
             width: 600px;
