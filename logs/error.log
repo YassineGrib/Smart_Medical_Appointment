@@ -1,0 +1,29 @@
+[12-May-2025 01:14:01 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "DB_HOST" in C:\xampp\htdocs\Smart_Medical_Appointment\setup.php:34
+Stack trace:
+#0 C:\xampp\htdocs\Smart_Medical_Appointment\setup.php(365): checkDatabaseConnection()
+#1 {main}
+  thrown in C:\xampp\htdocs\Smart_Medical_Appointment\setup.php on line 34
+[12-May-2025 01:14:12 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "DB_HOST" in C:\xampp\htdocs\Smart_Medical_Appointment\setup.php:34
+Stack trace:
+#0 C:\xampp\htdocs\Smart_Medical_Appointment\setup.php(365): checkDatabaseConnection()
+#1 {main}
+  thrown in C:\xampp\htdocs\Smart_Medical_Appointment\setup.php on line 34
+[12-May-2025 01:14:32 UTC] PHP Warning:  mysqli::__construct(): (HY000/1049): Unknown database 'medical_appointment' in C:\xampp\htdocs\Smart_Medical_Appointment\includes\db.php on line 32
+[12-May-2025 01:14:32 UTC] Database connection failed: Unknown database 'medical_appointment'
+[12-May-2025 01:14:39 UTC] PHP Warning:  mysqli::__construct(): (HY000/1049): Unknown database 'medical_appointment' in C:\xampp\htdocs\Smart_Medical_Appointment\includes\db.php on line 32
+[12-May-2025 01:14:39 UTC] Database connection failed: Unknown database 'medical_appointment'
+[12-May-2025 01:14:42 UTC] PHP Warning:  mysqli::__construct(): (HY000/1049): Unknown database 'medical_appointment' in C:\xampp\htdocs\Smart_Medical_Appointment\includes\db.php on line 32
+[12-May-2025 01:14:42 UTC] Database connection failed: Unknown database 'medical_appointment'
+[12-May-2025 01:14:46 UTC] PHP Warning:  mysqli::__construct(): (HY000/1049): Unknown database 'medical_appointment' in C:\xampp\htdocs\Smart_Medical_Appointment\includes\db.php on line 32
+[12-May-2025 01:14:46 UTC] Database connection failed: Unknown database 'medical_appointment'
+[12-May-2025 01:14:50 UTC] PHP Warning:  mysqli::__construct(): (HY000/1049): Unknown database 'medical_appointment' in C:\xampp\htdocs\Smart_Medical_Appointment\includes\db.php on line 32
+[12-May-2025 01:14:50 UTC] Database connection failed: Unknown database 'medical_appointment'
+[12-May-2025 01:14:55 UTC] PHP Warning:  mysqli::__construct(): (HY000/1049): Unknown database 'medical_appointment' in C:\xampp\htdocs\Smart_Medical_Appointment\includes\db.php on line 32
+[12-May-2025 01:14:55 UTC] Database connection failed: Unknown database 'medical_appointment'
+[12-May-2025 01:14:56 UTC] PHP Warning:  mysqli::__construct(): (HY000/1049): Unknown database 'medical_appointment' in C:\xampp\htdocs\Smart_Medical_Appointment\includes\db.php on line 32
+[12-May-2025 01:14:56 UTC] Database connection failed: Unknown database 'medical_appointment'
+[12-May-2025 01:15:20 UTC] PHP Fatal error:  Uncaught Error: Undefined constant "DB_HOST" in C:\xampp\htdocs\Smart_Medical_Appointment\setup.php:34
+Stack trace:
+#0 C:\xampp\htdocs\Smart_Medical_Appointment\setup.php(365): checkDatabaseConnection()
+#1 {main}
+  thrown in C:\xampp\htdocs\Smart_Medical_Appointment\setup.php on line 34
